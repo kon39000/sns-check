@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SNS発信タイプ診断｜AI時代のブランディング</title>
+  <style>
+    :root{
+      --bg:#faf6ff; /* very soft lavender */
+      --card:#ffffff;
+      --ink:#3a3856; /* soft purple-gray */
+      --muted:#8b7fa6;
+      --primary:#b8a9ff; /* soft lavender */
+      --primary-dark:#9b88f0;
+      --accent:#ffb8d1;  /* soft pink */
+      --mint:#b8ffd9;    /* soft mint */
+      --peach:#ffd4b8;   /* soft peach */
+      --sky:#b8e1ff;     /* soft sky */
+      --border:#e8e5f5;
+      --shadow: 0 8px 25px rgba(120, 100, 160, .12);
+      --radius: 20px;
+      --gradient-primary: linear-gradient(135deg, #b8d4ff 0%, #d4b8ff 50%, #ffb8e1 100%);
+      --gradient-soft: linear-gradient(135deg, rgba(184, 212, 255, 0.15) 0%, rgba(212, 184, 255, 0.1) 50%, rgba(255, 184, 225, 0.08) 100%);
+    }
+    html,body{height:100%}
+    body{
+      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", "Yu Gothic", "Meiryo", sans-serif;
+      color:var(--ink); 
+      background: linear-gradient(135deg, #fef6fb 0%, #f6f9ff 40%, #f6fff9 70%, #fffef6 100%);
+      min-height: 100vh;
+    }
+    .container{max-width:960px; margin:0 auto; padding:24px;}
+    header{
+      border-radius: calc(var(--radius) + 8px);
+      background: linear-gradient(135deg, rgba(184, 212, 255, 0.25) 0%, rgba(212, 184, 255, 0.2) 30%, rgba(255, 184, 225, 0.15) 60%, rgba(255, 212, 184, 0.1) 100%),
+                  var(--card);
+      box-shadow: var(--shadow);
+      padding: 32px 32px 26px;
+      margin: 20px 0 28px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(212, 184, 255, 0.2);
+    }
+    header h1{margin:0 0 6px; font-size: clamp(22px, 2.8vw, 34px); letter-spacing:.02em}
+    header p{margin:6px 0 0; color:var(--muted)}
+    .note{font-size: 14px; color:#5a4a7a; background:linear-gradient(135deg, #f4f0ff 0%, #f0f8ff 100%); border:1px solid rgba(184, 169, 255, 0.25); border-radius: 14px; padding:11px 14px; box-shadow: 0 2px 8px rgba(184, 169, 255, 0.08);}
+
+    .grid{display:grid; grid-template-columns: 1fr; gap:18px}
+    @media (min-width: 960px){ .grid{grid-template-columns: 1.05fr .95fr} }
+
+    .card{
+      background: linear-gradient(135deg, #ffffff 0%, #fafcff 50%, #fffafc 100%);
+      border: 1px solid rgba(184, 169, 255, 0.15);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: var(--gradient-soft);
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    .card h2{margin:0 0 10px; font-size: clamp(18px, 2.2vw, 22px)}
+    .field{margin:12px 0}
+    .field legend{font-weight:700; margin-bottom:6px}
+    .opts{display:grid; grid-template-columns: 1fr; gap:10px}
+    @media (min-width:640px){.opts{grid-template-columns: repeat(2, minmax(0,1fr));}}
+    @media (min-width:960px){.opts{grid-template-columns: repeat(3, minmax(0,1fr));}}
+
+    label.opt{
+      display:flex; gap:10px; align-items:flex-start; 
+      padding:12px 14px; 
+      border:1px solid rgba(184, 169, 255, 0.2); 
+      border-radius:14px; 
+      background: linear-gradient(135deg, #fcfdff 0%, #fffcfe 100%);
+      transition: all .25s ease;
+    }
+    label.opt:hover{
+      box-shadow:0 4px 16px rgba(184, 169, 255, .15); 
+      transform:translateY(-2px);
+      border-color: rgba(184, 169, 255, 0.35);
+      background: linear-gradient(135deg, #f8f6ff 0%, #fff6fc 100%);
+    }
+    label.opt input{margin-top:2px}
+
+    textarea, input[type="text"]{
+      width:100%; 
+      border:1px solid rgba(184, 169, 255, 0.2); 
+      border-radius:14px; 
+      padding:14px; 
+      font:inherit; 
+      background: linear-gradient(135deg, #fcfdff 0%, #fffcfe 100%);
+      transition: all .2s ease;
+    }
+    textarea:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(184, 169, 255, 0.1);
+    }
+
+    .actions{display:flex; flex-wrap:wrap; gap:10px; margin-top:14px}
+    button{
+      appearance:none; border:none; border-radius: 999px; 
+      padding:14px 24px; 
+      font-weight:600; 
+      cursor:pointer; 
+      transition: all .3s ease; 
+      letter-spacing:.02em;
+      position: relative;
+      overflow: hidden;
+    }
+    .primary{
+      background: linear-gradient(135deg, #b8d4ff 0%, #d4b8ff 50%, #ffb8e1 100%);
+      color:#ffffff;
+      text-shadow: 0 1px 2px rgba(107, 88, 150, 0.3);
+      box-shadow: 0 4px 15px rgba(184, 169, 255, 0.25);
+    }
+    .primary:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(184, 169, 255, 0.35);
+    }
+    .ghost{
+      background: linear-gradient(135deg, #ffffff 0%, #f8f6ff 100%);
+      border: 1px solid rgba(184, 169, 255, 0.25);
+      color: var(--ink);
+    }
+    .ghost:hover{
+      background: linear-gradient(135deg, #f8f6ff 0%, #fff6fc 100%);
+      border-color: rgba(184, 169, 255, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .result{padding:0;}
+    .result .headline{display:flex; align-items:center; gap:10px;}
+    .badge{
+      display:inline-block; 
+      padding:.4em .8em; 
+      background: linear-gradient(135deg, #f0ecff 0%, #ecf4ff 100%);
+      border: 1px solid rgba(184, 169, 255, 0.3);
+      border-radius:999px; 
+      font-size:12px; 
+      color:#5a4a7a;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+    .platform-tag{
+      display:inline-block; 
+      padding:.45em .75em; 
+      border-radius:999px; 
+      font-size:13px; 
+      font-weight:600; 
+      margin-right:6px; 
+      margin-top:6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .X{background: linear-gradient(135deg, #e8f1ff 0%, #f1e8ff 100%); color:#2a4a72; border:1px solid #c6d6ff}
+    .note.platform-tag{background: linear-gradient(135deg, #eefbf5 0%, #f5fbee 100%); color:#1a5739; border:1px solid #c6e2d3}
+    .Threads{background: linear-gradient(135deg, #f5f5ff 0%, #fff5f5 100%); color:#4a348c; border:1px solid #d6d5ff}
+    .Facebook{background: linear-gradient(135deg, #eaf2ff 0%, #ffeaf2 100%); color:#223a7a; border:1px solid #c7d6ff}
+    .YouTube{background: linear-gradient(135deg, #ffefef 0%, #ffeffa 100%); color:#8a2222; border:1px solid #ffcaca}
+    .standfm{background: linear-gradient(135deg, #fff4ee 0%, #ffeef4 100%); color:#7b4a24; border:1px solid #ffd6c7}
+
+    .reason, .next{
+      background: linear-gradient(135deg, #fbfdff 0%, #fffbfd 100%);
+      border: 2px dashed rgba(184, 169, 255, 0.2);
+      border-radius: 16px;
+      padding: 16px 18px;
+      margin-bottom: 16px;
+    }
+    .next ul{margin:8px 0 0 18px}
+
+    .cta{
+      background: linear-gradient(135deg, #fff9f3 0%, #f3f9ff 50%, #fff3f9 100%);
+      border: 1px solid rgba(255, 184, 225, 0.3);
+      border-radius: 18px;
+      padding: 18px 20px;
+      box-shadow: 0 4px 12px rgba(255, 184, 225, 0.1);
+    }
+    .cta h3{margin:0 0 8px}
+    .cta a{color:#0c4aa7; font-weight:700; text-decoration:none}
+    .cta a:hover{text-decoration:underline}
+
+    footer{margin: 26px 0 40px; color:#5e7489; font-size:13px; text-align:center}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>SNS発信タイプ診断<span class="badge">AIブランディング補助</span></h1>
+      <p>質問に答えると、あなたに合ったSNSと活用のコツを提案します。<br>※ 個人情報や機密情報は入力しないでください。</p>
+    </header>
+
+    <div class="grid">
+      <section class="card" id="formCard" aria-labelledby="formTitle">
+        <h2 id="formTitle">質問に答えて診断</h2>
+
+        <fieldset class="field">
+          <legend>① SNSを使う目的（複数選択可）</legend>
+          <div class="opts" id="purposes"></div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>② 伝えたい情報の種類（複数選択可）</legend>
+          <div class="opts" id="contentTypes"></div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>③ 繋がりたい相手像（複数選択可）</legend>
+          <div class="opts" id="audiences"></div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>④ 発信メディアの適性</legend>
+          <div class="opts" id="modalities"></div>
+        </fieldset>
+
+        <div class="field" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:18px;">
+          <div>
+            <label class="note" style="display:block; margin-bottom:8px">顔出し</label>
+            <div class="opts" id="face"></div>
+          </div>
+          <div>
+            <label class="note" style="display:block; margin-bottom:8px">実名／匿名</label>
+            <div class="opts" id="nameMode"></div>
+          </div>
+        </div>
+
+        <div class="field" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:18px;">
+          <div>
+            <label class="note" style="display:block; margin-bottom:8px">1回の発信にかけられる時間</label>
+            <div class="opts" id="postTime"></div>
+          </div>
+          <div>
+            <label class="note" style="display:block; margin-bottom:8px">更新頻度の目安</label>
+            <div class="opts" id="frequency"></div>
+          </div>
+        </div>
+
+        <fieldset class="field">
+          <legend>⑤ リスク志向</legend>
+          <div class="opts" id="risk"></div>
+        </fieldset>
+
+        <div class="field">
+          <label for="experience"><strong>⑥ これまでの経験・得意なこと（自由入力／任意）</strong></label>
+          <textarea id="experience" rows="3" placeholder="例：保育士8年。AIを使った教材づくりが得意。noteに記事20本…など"></textarea>
+        </div>
+
+        <div class="actions">
+          <button class="primary" id="run">診断する</button>
+          <button class="ghost" id="resetBtn" type="button">リセット</button>
+        </div>
+      </section>
+
+      <section class="card result" id="resultCard" aria-live="polite">
+        <div class="empty" id="emptyState">
+          <h2>診断結果がここに表示されます</h2>
+          <p style="color: var(--muted); font-size: 15px; line-height: 1.6; margin-top: 12px;">左の質問に回答して「診断する」を押してください。<br>優しいグラデーションで心地よいデザインです。</p>
+        </div>
+        <div id="result" style="display:none"></div>
+      </section>
+    </div>
+
+    <footer>
+      © 2025 SNS発信タイプ診断｜やさしい配色／シンプル設計
+    </footer>
+  </div>
+
+  <script>
+    // ====== Options ======
+    const OPTIONS = {
+      purposes: [
+        {id:'p_info', label:'情報収集'},
+        {id:'p_learn', label:'学び／アウトプット'},
+        {id:'p_side', label:'副業・収益化'},
+        {id:'p_port', label:'ポートフォリオ'},
+        {id:'p_mates', label:'仲間づくり'},
+        {id:'p_self', label:'自己表現'},
+        {id:'p_event', label:'イベント集客'},
+        {id:'p_hire', label:'採用・機会獲得'}
+      ],
+      contentTypes: [
+        {id:'c_know', label:'専門知識／ノウハウ'},
+        {id:'c_daily', label:'日常・ライフログ'},
+        {id:'c_product', label:'商品／サービス紹介'},
+        {id:'c_record', label:'活動・挑戦の記録'},
+        {id:'c_unsure', label:'まだわからない'}
+      ],
+      audiences: [
+        {id:'a_peers', label:'同じ興味の仲間'},
+        {id:'a_clients', label:'顧客・クライアント'},
+        {id:'a_fans', label:'応援してくれるファン'},
+        {id:'a_jobs', label:'仕事・機会提供者'},
+        {id:'a_local', label:'地域コミュニティ'}
+      ],
+      modalities: [
+        {id:'m_text', label:'テキスト中心'},
+        {id:'m_photo', label:'写真／デザイン'},
+        {id:'m_video', label:'動画'},
+        {id:'m_audio', label:'音声'},
+        {id:'m_live', label:'ライブ配信'}
+      ],
+      face: [
+        {id:'f_ok', label:'顔出しOK', type:'radio', name:'face'},
+        {id:'f_ng', label:'顔出しNG', type:'radio', name:'face'}
+      ],
+      nameMode: [
+        {id:'n_real', label:'実名が基本', type:'radio', name:'nameMode'},
+        {id:'n_handle', label:'ハンドルネーム', type:'radio', name:'nameMode'}
+      ],
+      postTime: [
+        {id:'t_5', label:'約5分'},
+        {id:'t_15', label:'約15分'},
+        {id:'t_60', label:'約60分'},
+        {id:'t_120', label:'約120分'}
+      ],
+      frequency: [
+        {id:'fq_daily', label:'毎日'},
+        {id:'fq_2w', label:'週2〜3'},
+        {id:'fq_w', label:'週1'},
+        {id:'fq_m2', label:'月2回'}
+      ],
+      risk: [
+        {id:'r_low', label:'低リスク志向'},
+        {id:'r_spread', label:'拡散優先'}
+      ]
+    };
+
+    const el = (tag, attrs={}, ...children) => {
+      const e = document.createElement(tag);
+      Object.entries(attrs).forEach(([k,v])=>{
+        if(k==='class') e.className = v; else if(k==='html') e.innerHTML = v; else e.setAttribute(k,v);
+      });
+      children.forEach(c=> e.append(c));
+      return e;
+    };
+
+    function mountOptions(containerId, list, type='checkbox'){
+      const wrap = document.getElementById(containerId);
+      list.forEach(item=>{
+        const id = item.id; const name = item.name || id;
+        const input = el('input', {type: (item.type||type), id, name});
+        const label = el('label', {for:id, class:'opt'});
+        label.append(input, el('span', {html:item.label}));
+        wrap.append(label);
+      });
+    }
+
+    // Mount all option groups
+    mountOptions('purposes', OPTIONS.purposes);
+    mountOptions('contentTypes', OPTIONS.contentTypes);
+    mountOptions('audiences', OPTIONS.audiences);
+    mountOptions('modalities', OPTIONS.modalities);
+    mountOptions('face', OPTIONS.face, 'radio');
+    mountOptions('nameMode', OPTIONS.nameMode, 'radio');
+    mountOptions('postTime', OPTIONS.postTime, 'radio');
+    mountOptions('frequency', OPTIONS.frequency, 'radio');
+    mountOptions('risk', OPTIONS.risk, 'radio');
+
+    // ====== Scoring Logic ======
+    const PLATFORM_KEYS = ['X','note','Threads','Facebook','YouTube','stand.fm'];
+
+    function newScore(){
+      const s = {}; PLATFORM_KEYS.forEach(k=> s[k] = {score:0, reasons:[]});
+      return s;
+    }
+
+    function pickChecked(id){
+      return [...document.querySelectorAll(`#${id} input:checked`)].map(i=> i.id);
+    }
+    function pickRadio(id){
+      const r = document.querySelector(`#${id} input:checked`);
+      return r? r.id : null;
+    }
+
+    function add(s, key, pts, reason){ s[key].score += pts; if(reason) s[key].reasons.push(reason); }
+
+    function diagnose(){
+      const s = newScore();
+      const selected = {
+        purposes: pickChecked('purposes'),
+        content: pickChecked('contentTypes'),
+        audience: pickChecked('audiences'),
+        modalities: pickChecked('modalities'),
+        face: pickRadio('face'),
+        name: pickRadio('nameMode'),
+        time: pickRadio('postTime'),
+        freq: pickRadio('frequency'),
+        risk: pickRadio('risk'),
+        exp: document.getElementById('experience').value.trim()
+      };
+
+      // Minimal validation
+      if(selected.purposes.length===0){
+        alert('まずは「SNSを使う目的」を1つ以上選んでください。');
+        return null;
+      }
+
+      // --- Purposes ---
+      selected.purposes.forEach(p=>{
+        if(p==='p_info'){ add(s,'X',2,'情報収集に強い'); add(s,'Threads',1); add(s,'Facebook',1); }
+        if(p==='p_learn'){ add(s,'note',2,'学びの体系化に最適'); add(s,'YouTube',1); add(s,'stand.fm',1); }
+        if(p==='p_side'){ add(s,'note',2,'収益導線を作りやすい'); add(s,'YouTube',2,'収益化しやすい'); add(s,'X',1); }
+        if(p==='p_port'){ add(s,'note',2,'ポートフォリオに適する'); add(s,'YouTube',2); add(s,'Threads',1); }
+        if(p==='p_mates'){ add(s,'Threads',2,'共感でつながりやすい'); add(s,'Facebook',2,'既存人脈と相性'); add(s,'X',1); }
+        if(p==='p_self'){ add(s,'Threads',2); add(s,'note',1); }
+        if(p==='p_event'){ add(s,'Facebook',2,'イベント拡散に強い'); add(s,'X',1); }
+        if(p==='p_hire'){ add(s,'note',2,'実績の見せ方に強い'); add(s,'X',1); }
+      });
+
+      // --- Content types ---
+      selected.content.forEach(c=>{
+        if(c==='c_know'){ add(s,'note',2,'知識記事と相性'); add(s,'YouTube',2,'解説動画と相性'); add(s,'X',1); }
+        if(c==='c_daily'){ add(s,'Threads',2,'日常・共感に強い'); add(s,'Facebook',2); }
+        if(c==='c_product'){ add(s,'Facebook',2,'告知・コミュニティ波及'); add(s,'note',1); add(s,'YouTube',1); add(s,'X',1); }
+        if(c==='c_record'){ add(s,'note',2,'挑戦の記録に最適'); add(s,'Threads',1); add(s,'YouTube',1); }
+        if(c==='c_unsure'){ add(s,'X',1,'実験投稿で探索'); add(s,'Threads',1); }
+      });
+
+      // --- Audience ---
+      selected.audience.forEach(a=>{
+        if(a==='a_peers'){ add(s,'Threads',2,'仲間づくりに強い'); add(s,'X',1); }
+        if(a==='a_clients'){ add(s,'Facebook',2,'実名人脈に強い'); add(s,'note',1); add(s,'YouTube',1); add(s,'X',1); }
+        if(a==='a_fans'){ add(s,'YouTube',2,'継続視聴でファン化'); add(s,'stand.fm',2,'声で関係構築'); add(s,'Threads',1); }
+        if(a==='a_jobs'){ add(s,'note',1); add(s,'X',1); add(s,'Facebook',1); }
+        if(a==='a_local'){ add(s,'Facebook',3,'地域コミュニティに強い'); }
+      });
+
+      // --- Modalities ---
+      selected.modalities.forEach(m=>{
+        if(m==='m_text'){ add(s,'X',2,'短文で頻度を出せる'); add(s,'note',2,'長文で深掘り'); add(s,'Facebook',1); add(s,'Threads',1); }
+        if(m==='m_photo'){ add(s,'Threads',1,'写真とも相性'); add(s,'Facebook',1); }
+        if(m==='m_video'){ add(s,'YouTube',3,'動画適性が高い'); }
+        if(m==='m_audio'){ add(s,'stand.fm',3,'音声に強み'); }
+        if(m==='m_live'){ add(s,'YouTube',2,'ライブ配信に強い'); add(s,'Facebook',1); add(s,'X',1); }
+      });
+
+      // --- Face / Name ---
+      if(selected.face==='f_ok'){ add(s,'YouTube',1,'顔出しOKで動画に強い'); }
+      if(selected.face==='f_ng'){ add(s,'note',1,'顔出し不要でも可'); add(s,'X',1); add(s,'stand.fm',1,'顔出し不要'); }
+
+      if(selected.name==='n_real'){ add(s,'Facebook',2,'実名文化'); add(s,'note',1); }
+      if(selected.name==='n_handle'){ add(s,'X',1); add(s,'Threads',1); add(s,'stand.fm',1); }
+
+      // --- Time per post ---
+      if(selected.time==='t_5'){ add(s,'X',2,'短時間で回せる'); add(s,'Threads',2); }
+      if(selected.time==='t_15'){ add(s,'X',1); add(s,'Threads',1); add(s,'note',1); }
+      if(selected.time==='t_60'){ add(s,'note',2,'深掘りに時間を使える'); add(s,'YouTube',2); add(s,'stand.fm',1); }
+      if(selected.time==='t_120'){ add(s,'YouTube',3,'制作時間を投下できる'); add(s,'note',1); }
+
+      // --- Frequency ---
+      if(selected.freq==='fq_daily'){ add(s,'X',2,'高頻度運用向き'); add(s,'Threads',2); }
+      if(selected.freq==='fq_2w'){ add(s,'X',1); add(s,'Threads',1); add(s,'note',1); }
+      if(selected.freq==='fq_w'){ add(s,'note',2); add(s,'YouTube',1); add(s,'stand.fm',1); }
+      if(selected.freq==='fq_m2'){ add(s,'note',1); add(s,'YouTube',1); add(s,'stand.fm',1); }
+
+      // --- Risk attitude ---
+      if(selected.risk==='r_low'){ add(s,'note',1,'低炎上で運用しやすい'); add(s,'Facebook',1); add(s,'stand.fm',1); }
+      if(selected.risk==='r_spread'){ add(s,'X',2,'拡散を取りに行く'); add(s,'Threads',1); add(s,'YouTube',1); }
+
+      return {scores:s, selected};
+    }
+
+    const ADVICE = {
+      'X': {
+        tag:'X',
+        tips:[
+          'プロフィールは「肩書き＋提供価値＋リンク」。固定ポストを用意',
+          '1日1〜3投稿＋気楽なリプで露出を増やす',
+          '学びメモ／実験途中／問いかけ投稿が刺さりやすい'
+        ]
+      },
+      'note': {
+        tag:'note',
+        tips:[
+          'プロフィールと目次記事（インデックス）を作る',
+          '月2本でもOK。1本は「実績・事例」、もう1本は「学びの整理」',
+          'XやThreadsで記事をシェアして循環を作る'
+        ]
+      },
+      'Threads':{
+        tag:'Threads',
+        tips:[
+          '日常×学びの軽量ポストで共感を積む',
+          '画像1枚＋短文の組合せが続けやすい',
+          '仲間の輪に入り、コメントで関係を作る'
+        ]
+      },
+      'Facebook':{
+        tag:'Facebook',
+        tips:[
+          '実名プロフィールを整え、職歴・活動を最新化',
+          'イベント／コミュニティでの露出が効果的',
+          '長文でも読まれやすいので背景・想いを丁寧に'
+        ]
+      },
+      'YouTube':{
+        tag:'YouTube',
+        tips:[
+          '「1テーマ1動画」。5〜10分の短尺から',
+          'サムネとタイトルでベネフィットを明確に',
+          '台本はChatGPTで下書き→自分の言葉に修正'
+        ]
+      },
+      'stand.fm':{
+        tag:'stand.fm',
+        tips:[
+          '顔出し不要。5〜10分の定時配信でOK',
+          'タイトルに「解決する悩み」を入れる',
+          'ハッシュタグで新規リスナーに届きやすく'
+        ]
+      }
+    };
+
+    function renderResult(data){
+      const {scores, selected} = data;
+      const list = Object.entries(scores).map(([k,v])=> ({platform:k, ...v}));
+      list.sort((a,b)=> b.score - a.score);
+      const top = list[0];
+      const second = list[1];
+
+      const resultBox = document.getElementById('result');
+      resultBox.innerHTML = '';
+
+      const title = el('h2', {class:'headline'});
+      title.append('あなたにおすすめのSNSは ', el('span',{class:`platform-tag ${top.platform.replace('.', '')}`}, top.platform));
+      resultBox.append(title);
+
+      // Reasons
+      const reason = el('div', {class:'reason'});
+      const rs = [...new Set(top.reasons)].slice(0,6);
+      reason.append(el('div',{html:'<strong>理由：</strong>'}));
+      if(rs.length){
+        const ul = el('ul'); rs.forEach(r=> ul.append(el('li',{html:r}))); reason.append(ul);
+      } else {
+        reason.append(el('p',{html:'あなたの回答と運用条件が合致しているためです。'}));
+      }
+      resultBox.append(reason);
+
+      // Next steps
+      const next = el('div', {class:'next'});
+      next.append(el('div',{html:'<strong>次のステップ：</strong>'}));
+      const tips = ADVICE[top.platform].tips;
+      const ul2 = el('ul'); tips.forEach(t=> ul2.append(el('li',{html:t}))); next.append(ul2);
+
+      // Secondary suggestion
+      const also = second? el('p',{html:`あわせて <span class="platform-tag ${second.platform.replace('.', '')}">${second.platform}</span> も相性が良いかもしれません。`}): null;
+      if(also) next.append(also);
+
+      resultBox.append(next);
+
+      // CTA (soft)
+      const cta = el('div',{class:'cta'});
+      cta.append(el('h3',{html:'もっと深めたい方へ（さっとご案内）'}));
+      const copy = `9月19日開催の実践講座では、プロフィール設計から投稿運用までをハンズオンで深掘りします。`;
+      cta.append(el('p',{html: copy}));
+      const link = el('a', {href:'https://peatix.com/event/4517793', target:'_blank', rel:'noopener', html:'ブランディング実践講座（Peatix）'});
+      cta.append(link);
+      resultBox.append(cta);
+
+      // Copy buttons
+      const actions = el('div',{class:'actions'});
+      const copyBtn = el('button',{class:'ghost', html:'結果をコピー'});
+      copyBtn.addEventListener('click', ()=>{
+        const text = `おすすめSNS: ${top.platform}\n理由: ${rs.join('、 ')}\n次のステップ: \n- ${tips.join('\n- ')}\n詳細: 9/19 ブランディング実践講座 → https://peatix.com/event/4517793`;
+        navigator.clipboard.writeText(text).then(()=>{
+          copyBtn.textContent='コピーしました！'; setTimeout(()=> copyBtn.textContent='結果をコピー', 1400);
+        });
+      });
+      actions.append(copyBtn);
+      resultBox.append(actions);
+
+      document.getElementById('emptyState').style.display='none';
+      resultBox.style.display='block';
+      // persist last answers
+      localStorage.setItem('sns_diag_last', JSON.stringify(selected));
+    }
+
+    document.getElementById('run').addEventListener('click', ()=>{
+      const data = diagnose(); if(!data) return; renderResult(data);
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', ()=>{
+      document.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(i=> i.checked=false);
+      document.getElementById('experience').value='';
+      document.getElementById('result').style.display='none';
+      document.getElementById('emptyState').style.display='block';
+      localStorage.removeItem('sns_diag_last');
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+
+    // Restore last answers if any
+    window.addEventListener('DOMContentLoaded', ()=>{
+      const saved = localStorage.getItem('sns_diag_last');
+      if(!saved) return;
+      try{
+        const a = JSON.parse(saved);
+        const check = (group, ids)=> ids.forEach(id=>{ const el = document.querySelector(`#${group} #${id}`); if(el) el.checked = true; });
+        check('purposes', a.purposes||[]);
+        check('contentTypes', a.content||[]);
+        check('audiences', a.audience||[]);
+        check('modalities', a.modalities||[]);
+        if(a.face){ const r = document.querySelector(`#face #${a.face}`); if(r) r.checked=true; }
+        if(a.name){ const r = document.querySelector(`#nameMode #${a.name}`); if(r) r.checked=true; }
+        if(a.time){ const r = document.querySelector(`#postTime #${a.time}`); if(r) r.checked=true; }
+        if(a.freq){ const r = document.querySelector(`#frequency #${a.freq}`); if(r) r.checked=true; }
+        if(a.risk){ const r = document.querySelector(`#risk #${a.risk}`); if(r) r.checked=true; }
+        if(a.exp){ document.getElementById('experience').value = a.exp; }
+      }catch(e){ /* ignore */ }
+    });
+  </script>
+</body>
+</html>
